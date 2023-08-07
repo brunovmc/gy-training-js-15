@@ -1,4 +1,5 @@
 const { parse, format } = require('date-fns');
+const { DATE_TIME_SECONDS, DATE } = require('../enums/dateFormat.enum');
 
 class DailyAggregation {
     constructor() {
@@ -6,20 +7,17 @@ class DailyAggregation {
     }
 
     onData(row) {
-        const customDateFormat = 'dd/MM/yyyy HH:mm:ss';
-        const dateObject = parse(row.dateTime, customDateFormat, new Date());
-        const isoDateString = format(dateObject, 'yyyy-MM-dd');
+        const dateObject = parse(row.dateTime, DATE_TIME_SECONDS, new Date());
+        const isoDateString = format(dateObject, DATE);
         const value = Number(row.value.replace(',', '.'));
 
         this.aggregateData(isoDateString, value);
     }
 
     aggregateData(isoDateString, value) {
-        if (!isNaN(value)) {
-            this.dailyAggregation[isoDateString] = this.dailyAggregation[isoDateString] || { sum: 0, count: 0 };
-            this.dailyAggregation[isoDateString].sum += value;
-            this.dailyAggregation[isoDateString].count++;
-        }
+        this.dailyAggregation[isoDateString] = this.dailyAggregation[isoDateString] || { sum: 0, count: 0 };
+        this.dailyAggregation[isoDateString].sum += value;
+        this.dailyAggregation[isoDateString].count++;
     }
 
     onEnd() {

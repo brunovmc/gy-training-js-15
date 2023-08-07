@@ -1,4 +1,5 @@
 const { parse, format, addHours } = require('date-fns');
+const { DATE_TIME_SECONDS } = require('../enums/dateFormat.enum');
 
 class HourlyAggregation {
     constructor() {
@@ -7,8 +8,7 @@ class HourlyAggregation {
     }
 
     onData(row) {
-        const customDateFormat = 'dd/MM/yyyy HH:mm:ss';
-        const date = parse(row.dateTime.replace(',', '.'), customDateFormat, new Date());
+        const date = parse(row.dateTime, DATE_TIME_SECONDS, new Date());
 
         if (!this.currentHourStart) {
             this.currentHourStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0, 0);
@@ -27,11 +27,9 @@ class HourlyAggregation {
     }
 
     aggregateData(hourStartString, value) {
-        if (!isNaN(value)) {
-            this.hourlyData[hourStartString] = this.hourlyData[hourStartString] || { sum: 0, count: 0};
-            this.hourlyData[hourStartString].sum += value;
-            this.hourlyData[hourStartString].count++;
-        }
+        this.hourlyData[hourStartString] = this.hourlyData[hourStartString] || { sum: 0, count: 0};
+        this.hourlyData[hourStartString].sum += value;
+        this.hourlyData[hourStartString].count++;
     }
 
     onEnd() {
