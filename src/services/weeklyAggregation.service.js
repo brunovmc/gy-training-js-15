@@ -1,56 +1,53 @@
 const { parse, addWeeks } = require('date-fns');
 
-function calculateWeeklyAggregation() {
-    const weeklyData = {};
-    let currentWeekStart = null;
+class WeeklyAggregation {
+    constructor() {
+        this.weeklyData = {};
+        this.currentWeekStart = null;
+        this.alarmThreshold = 1;
+        this.customDateFormat = 'dd/MM/yyyy HH:mm';
+    }
 
-    function aggregateWeeklyData(isoDateString, value) {
-        const alarmThreshold = 1;
-
-        weeklyData[isoDateString] = weeklyData[isoDateString] || { sum: 0, count: 0, alarmCount: 0 };
+    aggregateData(isoDateString, value) {
+        this.weeklyData[isoDateString] = this.weeklyData[isoDateString] || { sum: 0, count: 0, alarmCount: 0 };
         
-        weeklyData[isoDateString].sum += value;
-        weeklyData[isoDateString].count++;
+        this.weeklyData[isoDateString].sum += value;
+        this.weeklyData[isoDateString].count++;
 
-        if (value > alarmThreshold) {
-            weeklyData[isoDateString].alarmCount++;
+        if (value > this.alarmThreshold) {
+            this.weeklyData[isoDateString].alarmCount++;
         }
     }
 
-    function onData(row) {
-        const customDateFormat = 'dd/MM/yyyy HH:mm';
-        const date = parse(row.dateTime, customDateFormat, new Date());
+    onData(row) {
+        const date = parse(row.dateTime, this.customDateFormat, new Date());
 
-        if (!currentWeekStart) {
-            currentWeekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+        if (!this.currentWeekStart) {
+            this.currentWeekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
         }
 
-        const nextWeekStart = addWeeks(currentWeekStart, 1);
+        const nextWeekStart = addWeeks(this.currentWeekStart, 1);
 
         if (date >= nextWeekStart) {
-            currentWeekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+            this.currentWeekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
         }
 
-        const isoDateString = currentWeekStart.toISOString().split('T')[0];
+        const isoDateString = this.currentWeekStart.toISOString().split('T')[0];
         const value = Number(row.value.replace(',', '.'));
 
         if (!isNaN(value)) {
-            aggregateWeeklyData(isoDateString, value);
+            this.aggregateData(isoDateString, value);
         }
     }
 
-    function onEnd() {
+    onEnd() {
         console.log("Weekly Aggregation Report:");
-        for (const weekStartDate in weeklyData) {
-            const { sum, count, alarmCount } = weeklyData[weekStartDate];
+        for (const weekStartDate in this.weeklyData) {
+            const { sum, count, alarmCount } = this.weeklyData[weekStartDate];
             const weeklyAverage = sum / count;
             console.log(`${weekStartDate} - Weekly Average: ${weeklyAverage.toFixed(2)} - Alarms Triggered: ${alarmCount}`);
         }
     }
-
-    return { onData, onEnd };
 }
 
-module.exports = {
-    calculateWeeklyAggregation
-};
+module.exports = WeeklyAggregation;

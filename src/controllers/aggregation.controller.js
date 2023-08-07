@@ -1,26 +1,26 @@
-const dailyService = require('../services/dailyAggregation.service');
-const weeklyService = require('../services/weeklyAggregation.service');
-const hourlyService = require('../services/hourlyAggregation.service');
+const DailyService = require('../services/dailyAggregation.service');
+const WeeklyService = require('../services/weeklyAggregation.service');
+const HourlyService = require('../services/hourlyAggregation.service');
 const readCsvFile = require('../services/csvReader.service')
 
 const generateDailyReport = async (req, res) => {
   const file = './data/METRICS_REPORT-1673286660394 (3).csv';
-  const { onData, onEnd } = await dailyService.calculateDailyAggregation();
-  readCsvFile(file, onData, onEnd);
+  const dailyAggregator = new DailyService();
+  readCsvFile(file, row => dailyAggregator.onData(row), () => dailyAggregator.onEnd());
   res.send("Daily Aggregation calculated and logged in the console.");
 };
 
 const generateWeeklyReport = async (req, res) => {
   const file = './data/METRICS_REPORT-1673351714089 (2).csv';
-  const { onData, onEnd } = await weeklyService.calculateWeeklyAggregation();
-  readCsvFile(file, onData, onEnd);
+  const weeklyAggregator = new WeeklyService();
+  readCsvFile(file, row => weeklyAggregator.onData(row), () => weeklyAggregator.onEnd());
   res.send("Weekly Aggregation Report generated and logged in the console.");
 };
 
 const generateHourlyReport = async (req, res) => {
   const file = './data/METRICS_REPORT-1673351714089 (1).csv';
-  const { onData, onEnd } = await hourlyService.calculateHourlyAggregation();
-  readCsvFile(file, onData, onEnd);
+  const hourlyAggregator = new HourlyService();
+  readCsvFile(file, row => hourlyAggregator.onData(row), () => hourlyAggregator.onEnd());
   res.send("Hourly Aggregation Report generated and logged in the console.");
 };
 
