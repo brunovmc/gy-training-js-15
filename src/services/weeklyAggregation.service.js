@@ -1,7 +1,6 @@
 const { parse, addWeeks, format } = require('date-fns');
-const { DATE_TIME,  DATE } = require('../enums/dateFormat.enum');
+const { DATE_TIME, DATE } = require('../enums/dateFormat.enum');
 const { ALARM_THRESHOLD } = require('../enums/alarmThreshold.enum');
-
 
 class WeeklyAggregation {
     constructor() {
@@ -22,21 +21,25 @@ class WeeklyAggregation {
 
     onData(row) {
         const date = parse(row.dateTime, DATE_TIME, new Date());
-
-        if (!this.currentWeekStart) {
-            this.currentWeekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
-        }
-
-        const nextWeekStart = addWeeks(this.currentWeekStart, 1);
-
-        if (date >= nextWeekStart) {
-            this.currentWeekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
-        }
+        this.updateWeeklyBoundary(date);
 
         const isoDateString = format(this.currentWeekStart, DATE);
         const value = Number(row.value.replace(',', '.'));
 
         this.aggregateData(isoDateString, value);
+    }
+
+    updateWeeklyBoundary(date) {
+        if (!this.currentWeekStart) {
+            this.currentWeekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+            return;
+        }
+
+        const nextWeekStart = addWeeks(this.currentWeekStart, 1);
+        
+        if (date >= nextWeekStart) {
+            this.currentWeekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+        }
     }
 
     onEnd() {

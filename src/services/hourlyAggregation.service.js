@@ -9,9 +9,18 @@ class HourlyAggregation {
 
     onData(row) {
         const date = parse(row.dateTime, DATE_TIME_SECONDS, new Date());
+        this.updateHourlyBoundary(date);
 
+        const hourStartString = format(this.currentHourStart, 'dd-MM-yyyy HH:00:00');
+        const value = Number(row.value.replace(',', '.'));
+
+        this.aggregateData(hourStartString, value);
+    }
+
+    updateHourlyBoundary(date) {
         if (!this.currentHourStart) {
             this.currentHourStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0, 0);
+            return;
         }
 
         const nextHourStart = addHours(this.currentHourStart, 1);
@@ -19,11 +28,6 @@ class HourlyAggregation {
         if (date >= nextHourStart) {
             this.currentHourStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0, 0);
         }
-
-        const hourStartString = format(this.currentHourStart, 'dd-MM-yyyy HH:00:00');
-        const value = Number(row.value.replace(',', '.'));
-
-        this.aggregateData(hourStartString, value);
     }
 
     aggregateData(hourStartString, value) {
