@@ -6,13 +6,6 @@ class DailyAggregation {
         this.dailyAggregation = {};
     }
 
-    onData(row) {
-        const isoDateString = this.getISODateString(row.dateTime);
-        const value = Number(row.value.replace(',', '.'));
-
-        this.aggregateData(isoDateString, value);
-    }
-
     getISODateString(dateTime) {
         const dateObject = parse(dateTime, DATE_TIME_SECONDS, new Date());
         return format(dateObject, DATE);
@@ -22,6 +15,13 @@ class DailyAggregation {
         this.dailyAggregation[isoDateString] = this.dailyAggregation[isoDateString] || { sum: 0, count: 0 };
         this.dailyAggregation[isoDateString].sum += value;
         this.dailyAggregation[isoDateString].count++;
+    }
+
+    onData(row) {
+        const isoDateString = this.getISODateString(row.dateTime);
+        const value = Number(row.value.replace(',', '.'));
+
+        this.aggregateData(isoDateString, value);
     }
 
     onEnd() {
