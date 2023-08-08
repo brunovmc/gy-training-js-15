@@ -6,15 +6,17 @@ class HourlyAggregation {
         this.hourlyData = {};
         this.currentHourStart = null;
     }
+  
+    aggregateData(hourStartString, value) {
+        this.hourlyData[hourStartString] = this.hourlyData[hourStartString] || { sum: 0, count: 0};
+        this.hourlyData[hourStartString].sum += value;
+        this.hourlyData[hourStartString].count++;
+    }
 
-    onData(row) {
-        const date = parse(row.dateTime, DATE_TIME_SECONDS, new Date());
+    getHourStartString(dateTime) {
+        const date = parse(dateTime, DATE_TIME_SECONDS, new Date());
         this.updateHourlyBoundary(date);
-
-        const hourStartString = format(this.currentHourStart, 'dd-MM-yyyy HH:00:00');
-        const value = Number(row.value.replace(',', '.'));
-
-        this.aggregateData(hourStartString, value);
+        return format(this.currentHourStart, 'dd-MM-yyyy HH:00:00');
     }
 
     updateHourlyBoundary(date) {
@@ -30,10 +32,11 @@ class HourlyAggregation {
         }
     }
 
-    aggregateData(hourStartString, value) {
-        this.hourlyData[hourStartString] = this.hourlyData[hourStartString] || { sum: 0, count: 0};
-        this.hourlyData[hourStartString].sum += value;
-        this.hourlyData[hourStartString].count++;
+    onData(row) {
+        const hourStartString = this.getHourStartString(row.dateTime);
+        const value = Number(row.value.replace(',', '.'));
+
+        this.aggregateData(hourStartString, value);
     }
 
     onEnd() {
