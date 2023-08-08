@@ -7,11 +7,15 @@ class DailyAggregation {
     }
 
     onData(row) {
-        const dateObject = parse(row.dateTime, DATE_TIME_SECONDS, new Date());
-        const isoDateString = format(dateObject, DATE);
+        const isoDateString = this.getISODateString(row.dateTime);
         const value = Number(row.value.replace(',', '.'));
 
         this.aggregateData(isoDateString, value);
+    }
+
+    getISODateString(dateTime) {
+        const dateObject = parse(dateTime, DATE_TIME_SECONDS, new Date());
+        return format(dateObject, DATE);
     }
 
     aggregateData(isoDateString, value) {
